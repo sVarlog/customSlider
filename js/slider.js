@@ -1,4 +1,4 @@
-function initCustomSlider({arrows, dots, section, transition = 1000, autoplay, timerTime = 10000}) {
+function initCustomSlider({arrows, dots, section, transition = 1000, touches = true, autoplay, timerTime = 10000}) {
     try{
         const slider = document.querySelector(`${section}`),
               sliderWrapp = slider.querySelector('.sliderWrapp'),
@@ -152,6 +152,27 @@ function initCustomSlider({arrows, dots, section, transition = 1000, autoplay, t
                 }
             };
 
+            const touchesInit = () => {
+                sliderItems.forEach(el => {
+                    el.addEventListener('touchstart', (e) => {
+                        touchMove(el, e);   
+                    });
+                    el.addEventListener('touchend', (e) => {
+                        console.log(e);
+                    });
+                });
+
+                function touchMove(el, e) {
+                    el.addEventListener('touchmove', (ev) => {
+                        console.log(ev);
+                    })
+                }
+            };
+
+            if(touches) {
+                touchesInit();
+            }
+
             if(arrowsState) {
                 let arrPrev = arrowsState.querySelector('.arrPrev'),
                     arrNext = arrowsState.querySelector('.arrNext');
@@ -191,6 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dots: true,
         transition: 1000,
         autoplay: true,
-        timerTime: 5000
+        timerTime: 5000,
+        touches: true
     });
 });

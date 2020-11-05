@@ -6,6 +6,8 @@ function initCustomSlider(_ref) {
       section = _ref.section,
       _ref$transition = _ref.transition,
       transition = _ref$transition === void 0 ? 1000 : _ref$transition,
+      _ref$touches = _ref.touches,
+      touches = _ref$touches === void 0 ? true : _ref$touches,
       autoplay = _ref.autoplay,
       _ref$timerTime = _ref.timerTime,
       timerTime = _ref$timerTime === void 0 ? 10000 : _ref$timerTime;
@@ -161,6 +163,27 @@ function initCustomSlider(_ref) {
         }
       };
 
+      var touchesInit = function touchesInit() {
+        sliderItems.forEach(function (el) {
+          el.addEventListener('touchstart', function (e) {
+            touchMove(el, e);
+          });
+          el.addEventListener('touchend', function (e) {
+            console.log(e);
+          });
+        });
+
+        function touchMove(el, e) {
+          el.addEventListener('touchmove', function (ev) {
+            console.log(ev);
+          });
+        }
+      };
+
+      if (touches) {
+        touchesInit();
+      }
+
       if (arrowsState) {
         var _arrPrev = arrowsState.querySelector('.arrPrev'),
             _arrNext = arrowsState.querySelector('.arrNext');
@@ -204,6 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
     dots: true,
     transition: 1000,
     autoplay: true,
-    timerTime: 5000
+    timerTime: 5000,
+    touches: true
   });
 });
