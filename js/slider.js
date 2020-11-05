@@ -10,7 +10,8 @@ function initCustomSlider({arrows, dots, section, transition = 1000, touches = t
             firstClone = null,
             lastClone = null,
             transitionTime = transition / 1000,
-            currStep = 1;
+            currStep = 1,
+            swipeState = 0;
 
         if(sliderItems.length > 1) {
             sliderInner.style.width = `${(sliderItems.length * 100) + 200}%`;
@@ -21,7 +22,7 @@ function initCustomSlider({arrows, dots, section, transition = 1000, touches = t
             new Promise((resolve, reject) => {
                 setTimeout(() => {
                     sliderInner.style.transition = '0s';
-                }, 0)
+                }, 0);
             })
             .then(
                 setTimeout(() => {
@@ -32,7 +33,7 @@ function initCustomSlider({arrows, dots, section, transition = 1000, touches = t
                 setTimeout(() => {
                     sliderInner.style.transition = `${transitionTime}s`;
                 }, 200)
-            )
+            );
         } else {
             sliderInner.style.width = `${sliderItems.length * 100}%`;
         }
@@ -78,25 +79,26 @@ function initCustomSlider({arrows, dots, section, transition = 1000, touches = t
                 }
             };
 
-            const changeSlide = (num) => {
-                const autoplayInit = () => {
+            const autoplayInit = () => {
+                if(timer) {
                     clearInterval(timer);
-                    timer = setInterval(() => {
-                        changeSlide('next');
-                    }, timerTime);
-                };
+                }
+                timerInit();
+            };
 
+            const changeSlide = (num) => {
                 if(num == 'next') {
                     currStep += 1;
                     if(currStep > sliderItems.length) {
                         currStep = 0;
                     }
+                    console.log(currStep);
                     if(currStep == sliderItems.length) {
                         new Promise((resolve, reject) => {
                             setTimeout(() => {
                                 sliderInner.style.transform = `translateX(${-(sliderWrapp.offsetWidth * currStep)}px)`;                
                                 changeDot(currStep - 1);
-                            }, 0)
+                            }, 0);
                         }).then(
                             setTimeout(() => {
                                 currStep = 0;
@@ -107,7 +109,7 @@ function initCustomSlider({arrows, dots, section, transition = 1000, touches = t
                             setTimeout(() => {
                                 sliderInner.style.transition = `${transitionTime}s`;
                             }, (transition + 50))
-                        )
+                        );
                     } else if(currStep < sliderItems.length) {
                         sliderInner.style.transform = `translateX(${-(sliderWrapp.offsetWidth * currStep)}px)`;
                         if(dotsState) {
@@ -124,8 +126,7 @@ function initCustomSlider({arrows, dots, section, transition = 1000, touches = t
                             setTimeout(() => {
                                 sliderInner.style.transform = `translateX(${-(sliderWrapp.offsetWidth * currStep)}px)`;                
                                 changeDot(sliderItems.length - 1);
-                                console.log(sliderItems.length);
-                            }, 0)
+                            }, 0);
                         }).then(
                             setTimeout(() => {
                                 currStep = sliderItems.length;
@@ -136,7 +137,7 @@ function initCustomSlider({arrows, dots, section, transition = 1000, touches = t
                             setTimeout(() => {
                                 sliderInner.style.transition = `${transitionTime}s`;
                             }, (transition + 50))
-                        )
+                        );
                     } else if(currStep >= -1) {
                         sliderInner.style.transform = `translateX(${-(sliderWrapp.offsetWidth * currStep)}px)`;
                         if(dotsState) {
@@ -150,22 +151,54 @@ function initCustomSlider({arrows, dots, section, transition = 1000, touches = t
                     sliderInner.style.transform = `translateX(${-(sliderWrapp.offsetWidth * (num + 1))}px)`;                
                     changeDot(num);
                 }
+                swipeState = 1;
+            };
+
+            const timerInit = () => {
+                timer = setInterval(() => {
+                    changeSlide('next');
+                }, timerTime);
             };
 
             const touchesInit = () => {
-                sliderItems.forEach(el => {
+                sliderInner.querySelectorAll('.item').forEach(el => {
                     el.addEventListener('touchstart', (e) => {
-                        touchMove(el, e);   
+                        touchMove(el, e);
+                        clearInterval(timer);
                     });
                     el.addEventListener('touchend', (e) => {
-                        console.log(e);
+                        swipeState = 0;
+                        if(autoplay) {
+                            autoplayInit();
+                        }
                     });
                 });
 
                 function touchMove(el, e) {
+                    let startX = e.touches[0].pageX;
+                    
+                    const moveInit = (ev) => {
+                        let newPosX = ev.touches[0].pageX;
+                        if(newPosX < (startX - 75)) {
+                            if(swipeState == 0) {
+                                changeSlide('next');
+                                el.removeEventListener('touchmove', (ev) => {
+                                    moveInit(ev);
+                                });
+                            }
+                        } else if(newPosX > (startX + 75)) {
+                            if(swipeState == 0) {
+                                changeSlide('prev');
+                                el.removeEventListener('touchmove', (ev) => {
+                                    moveInit(ev);
+                                });
+                            }
+                        }
+                    };
+
                     el.addEventListener('touchmove', (ev) => {
-                        console.log(ev);
-                    })
+                        moveInit(ev);
+                    });
                 }
             };
 
@@ -195,9 +228,7 @@ function initCustomSlider({arrows, dots, section, transition = 1000, touches = t
             }
 
             if(autoplay) {
-                timer = setInterval(() => {
-                    changeSlide('next');
-                }, timerTime);
+                timerInit();
             }
         };
         events();
@@ -211,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
         arrows: true,
         dots: true,
         transition: 1000,
-        autoplay: true,
+        autoplay: false,
         timerTime: 5000,
         touches: true
     });

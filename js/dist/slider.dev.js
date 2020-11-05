@@ -23,7 +23,8 @@ function initCustomSlider(_ref) {
         firstClone = null,
         lastClone = null,
         transitionTime = transition / 1000,
-        currStep = 1;
+        currStep = 1,
+        swipeState = 0;
 
     if (sliderItems.length > 1) {
       sliderInner.style.width = "".concat(sliderItems.length * 100 + 200, "%");
@@ -90,20 +91,23 @@ function initCustomSlider(_ref) {
         }
       };
 
-      var changeSlide = function changeSlide(num) {
-        var autoplayInit = function autoplayInit() {
+      var autoplayInit = function autoplayInit() {
+        if (timer) {
           clearInterval(timer);
-          timer = setInterval(function () {
-            changeSlide('next');
-          }, timerTime);
-        };
+        }
 
+        timerInit();
+      };
+
+      var changeSlide = function changeSlide(num) {
         if (num == 'next') {
           currStep += 1;
 
           if (currStep > sliderItems.length) {
             currStep = 0;
           }
+
+          console.log(currStep);
 
           if (currStep == sliderItems.length) {
             new Promise(function (resolve, reject) {
@@ -137,7 +141,6 @@ function initCustomSlider(_ref) {
               setTimeout(function () {
                 sliderInner.style.transform = "translateX(".concat(-(sliderWrapp.offsetWidth * currStep), "px)");
                 changeDot(sliderItems.length - 1);
-                console.log(sliderItems.length);
               }, 0);
             }).then(setTimeout(function () {
               currStep = sliderItems.length;
@@ -161,21 +164,56 @@ function initCustomSlider(_ref) {
           sliderInner.style.transform = "translateX(".concat(-(sliderWrapp.offsetWidth * (num + 1)), "px)");
           changeDot(num);
         }
+
+        swipeState = 1;
+      };
+
+      var timerInit = function timerInit() {
+        timer = setInterval(function () {
+          changeSlide('next');
+        }, timerTime);
       };
 
       var touchesInit = function touchesInit() {
-        sliderItems.forEach(function (el) {
+        sliderInner.querySelectorAll('.item').forEach(function (el) {
           el.addEventListener('touchstart', function (e) {
             touchMove(el, e);
+            clearInterval(timer);
           });
           el.addEventListener('touchend', function (e) {
-            console.log(e);
+            swipeState = 0;
+
+            if (autoplay) {
+              autoplayInit();
+            }
           });
         });
 
         function touchMove(el, e) {
+          var startX = e.touches[0].pageX;
+
+          var moveInit = function moveInit(ev) {
+            var newPosX = ev.touches[0].pageX;
+
+            if (newPosX < startX - 75) {
+              if (swipeState == 0) {
+                changeSlide('next');
+                el.removeEventListener('touchmove', function (ev) {
+                  moveInit(ev);
+                });
+              }
+            } else if (newPosX > startX + 75) {
+              if (swipeState == 0) {
+                changeSlide('prev');
+                el.removeEventListener('touchmove', function (ev) {
+                  moveInit(ev);
+                });
+              }
+            }
+          };
+
           el.addEventListener('touchmove', function (ev) {
-            console.log(ev);
+            moveInit(ev);
           });
         }
       };
@@ -208,9 +246,7 @@ function initCustomSlider(_ref) {
       }
 
       if (autoplay) {
-        timer = setInterval(function () {
-          changeSlide('next');
-        }, timerTime);
+        timerInit();
       }
     };
 
@@ -226,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function () {
     arrows: true,
     dots: true,
     transition: 1000,
-    autoplay: true,
+    autoplay: false,
     timerTime: 5000,
     touches: true
   });
