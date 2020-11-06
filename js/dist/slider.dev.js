@@ -5,7 +5,7 @@ function initCustomSlider(_ref) {
       dots = _ref.dots,
       section = _ref.section,
       _ref$transition = _ref.transition,
-      transition = _ref$transition === void 0 ? 1000 : _ref$transition,
+      transition = _ref$transition === void 0 ? 500 : _ref$transition,
       _ref$touches = _ref.touches,
       touches = _ref$touches === void 0 ? true : _ref$touches,
       autoplay = _ref.autoplay,
@@ -103,26 +103,21 @@ function initCustomSlider(_ref) {
         if (num == 'next') {
           currStep += 1;
 
-          if (currStep > sliderItems.length) {
-            currStep = 0;
-          }
-
-          console.log(currStep);
-
           if (currStep == sliderItems.length) {
             new Promise(function (resolve, reject) {
-              setTimeout(function () {
+              resolve(setTimeout(function () {
                 sliderInner.style.transform = "translateX(".concat(-(sliderWrapp.offsetWidth * currStep), "px)");
-                changeDot(currStep - 1);
-              }, 0);
-            }).then(setTimeout(function () {
-              currStep = 0;
-              sliderInner.style.transition = '0s';
-              sliderInner.style.transform = "translateX(".concat(-(sliderWrapp.offsetWidth * currStep), "px)");
-            }, transition)).then(setTimeout(function () {
-              sliderInner.style.transition = "".concat(transitionTime, "s");
-            }, transition + 50));
+                changeDot(sliderItems.length - 1);
+              }, 0));
+            }).then(new Promise(function (resolve, reject) {
+              resolve(setTimeout(function () {
+                currStep = 0;
+                sliderInner.style.transition = '0s';
+                sliderInner.style.transform = "translateX(".concat(-(sliderWrapp.offsetWidth * currStep), "px)");
+              }, transition));
+            })).then(sliderInner.style.transition = "".concat(transitionTime, "s"));
           } else if (currStep < sliderItems.length) {
+            sliderInner.style.transition = "".concat(transitionTime, "s");
             sliderInner.style.transform = "translateX(".concat(-(sliderWrapp.offsetWidth * currStep), "px)");
 
             if (dotsState) {
@@ -136,20 +131,21 @@ function initCustomSlider(_ref) {
         } else if (num == 'prev') {
           currStep -= 1;
 
-          if (currStep == 0) {
+          if (currStep <= 0) {
             new Promise(function (resolve, reject) {
-              setTimeout(function () {
+              resolve(setTimeout(function () {
                 sliderInner.style.transform = "translateX(".concat(-(sliderWrapp.offsetWidth * currStep), "px)");
                 changeDot(sliderItems.length - 1);
-              }, 0);
-            }).then(setTimeout(function () {
-              currStep = sliderItems.length;
-              sliderInner.style.transition = '0s';
-              sliderInner.style.transform = "translateX(".concat(-(sliderWrapp.offsetWidth * sliderItems.length), "px)");
-            }, transition)).then(setTimeout(function () {
-              sliderInner.style.transition = "".concat(transitionTime, "s");
-            }, transition + 50));
-          } else if (currStep >= -1) {
+              }, 0));
+            }).then(new Promise(function (resolve, reject) {
+              resolve(setTimeout(function () {
+                currStep = sliderItems.length;
+                sliderInner.style.transition = '0s';
+                sliderInner.style.transform = "translateX(".concat(-(sliderWrapp.offsetWidth * currStep), "px)");
+              }, transition));
+            })).then(sliderInner.style.transition = "".concat(transitionTime, "s"));
+          } else if (currStep > 0) {
+            sliderInner.style.transition = "".concat(transitionTime, "s");
             sliderInner.style.transform = "translateX(".concat(-(sliderWrapp.offsetWidth * currStep), "px)");
 
             if (dotsState) {
@@ -174,6 +170,8 @@ function initCustomSlider(_ref) {
         }, timerTime);
       };
 
+      var startX;
+
       var touchesInit = function touchesInit() {
         sliderInner.querySelectorAll('.item').forEach(function (el) {
           el.addEventListener('touchstart', function (e) {
@@ -190,7 +188,7 @@ function initCustomSlider(_ref) {
         });
 
         function touchMove(el, e) {
-          var startX = e.touches[0].pageX;
+          startX = e.touches[0].pageX;
 
           var moveInit = function moveInit(ev) {
             var newPosX = ev.touches[0].pageX;
@@ -255,15 +253,3 @@ function initCustomSlider(_ref) {
     console.log(e);
   }
 }
-
-document.addEventListener('DOMContentLoaded', function () {
-  initCustomSlider({
-    section: '.customSlider',
-    arrows: true,
-    dots: true,
-    transition: 1000,
-    autoplay: false,
-    timerTime: 5000,
-    touches: true
-  });
-});

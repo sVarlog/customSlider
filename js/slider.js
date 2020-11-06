@@ -1,4 +1,4 @@
-function initCustomSlider({arrows, dots, section, transition = 1000, touches = true, autoplay, timerTime = 10000}) {
+function initCustomSlider({arrows, dots, section, transition = 500, touches = true, autoplay, timerTime = 10000}) {
     try{
         const slider = document.querySelector(`${section}`),
               sliderWrapp = slider.querySelector('.sliderWrapp'),
@@ -89,28 +89,29 @@ function initCustomSlider({arrows, dots, section, transition = 1000, touches = t
             const changeSlide = (num) => {
                 if(num == 'next') {
                     currStep += 1;
-                    if(currStep > sliderItems.length) {
-                        currStep = 0;
-                    }
-                    console.log(currStep);
                     if(currStep == sliderItems.length) {
                         new Promise((resolve, reject) => {
-                            setTimeout(() => {
-                                sliderInner.style.transform = `translateX(${-(sliderWrapp.offsetWidth * currStep)}px)`;                
-                                changeDot(currStep - 1);
-                            }, 0);
-                        }).then(
-                            setTimeout(() => {
-                                currStep = 0;
-                                sliderInner.style.transition = '0s';
-                                sliderInner.style.transform = `translateX(${-(sliderWrapp.offsetWidth * currStep)}px)`;
-                            },  transition)
+                            resolve(
+                                setTimeout(() => {
+                                    sliderInner.style.transform = `translateX(${-(sliderWrapp.offsetWidth * currStep)}px)`;
+                                    changeDot(sliderItems.length - 1);
+                                }, 0)
+                            );                     
+                        }).then(                             
+                            new Promise((resolve, reject) => {
+                                resolve(
+                                    setTimeout(() => {
+                                        currStep = 0;
+                                        sliderInner.style.transition = '0s';
+                                        sliderInner.style.transform = `translateX(${-(sliderWrapp.offsetWidth * currStep)}px)`;
+                                    }, transition)
+                                );
+                            })
                         ).then(
-                            setTimeout(() => {
-                                sliderInner.style.transition = `${transitionTime}s`;
-                            }, (transition + 50))
+                            sliderInner.style.transition = `${transitionTime}s`
                         );
                     } else if(currStep < sliderItems.length) {
+                        sliderInner.style.transition = `${transitionTime}s`;
                         sliderInner.style.transform = `translateX(${-(sliderWrapp.offsetWidth * currStep)}px)`;
                         if(dotsState) {
                             changeDot(currStep - 1);
@@ -121,24 +122,29 @@ function initCustomSlider({arrows, dots, section, transition = 1000, touches = t
                     }
                 } else if(num == 'prev') {
                     currStep -= 1;
-                    if(currStep == 0) {
+                    if(currStep <= 0) {
                         new Promise((resolve, reject) => {
-                            setTimeout(() => {
-                                sliderInner.style.transform = `translateX(${-(sliderWrapp.offsetWidth * currStep)}px)`;                
-                                changeDot(sliderItems.length - 1);
-                            }, 0);
+                            resolve(
+                                setTimeout(() => {
+                                    sliderInner.style.transform = `translateX(${-(sliderWrapp.offsetWidth * currStep)}px)`;
+                                    changeDot(sliderItems.length - 1);
+                                }, 0)
+                            );
                         }).then(
-                            setTimeout(() => {
-                                currStep = sliderItems.length;
-                                sliderInner.style.transition = '0s';
-                                sliderInner.style.transform = `translateX(${-(sliderWrapp.offsetWidth * sliderItems.length)}px)`;
-                            },  transition)
+                            new Promise((resolve, reject) => {
+                                resolve(
+                                    setTimeout(() => {
+                                        currStep = sliderItems.length;
+                                        sliderInner.style.transition = '0s';
+                                        sliderInner.style.transform = `translateX(${-(sliderWrapp.offsetWidth * currStep)}px)`;
+                                    }, transition)
+                                );
+                            })
                         ).then(
-                            setTimeout(() => {
-                                sliderInner.style.transition = `${transitionTime}s`;
-                            }, (transition + 50))
+                            sliderInner.style.transition = `${transitionTime}s`
                         );
-                    } else if(currStep >= -1) {
+                    } else if(currStep > 0) {
+                        sliderInner.style.transition = `${transitionTime}s`;
                         sliderInner.style.transform = `translateX(${-(sliderWrapp.offsetWidth * currStep)}px)`;
                         if(dotsState) {
                             changeDot(currStep - 1);
@@ -160,6 +166,8 @@ function initCustomSlider({arrows, dots, section, transition = 1000, touches = t
                 }, timerTime);
             };
 
+            let startX;
+
             const touchesInit = () => {
                 sliderInner.querySelectorAll('.item').forEach(el => {
                     el.addEventListener('touchstart', (e) => {
@@ -175,7 +183,7 @@ function initCustomSlider({arrows, dots, section, transition = 1000, touches = t
                 });
 
                 function touchMove(el, e) {
-                    let startX = e.touches[0].pageX;
+                    startX = e.touches[0].pageX;
                     
                     const moveInit = (ev) => {
                         let newPosX = ev.touches[0].pageX;
@@ -236,14 +244,3 @@ function initCustomSlider({arrows, dots, section, transition = 1000, touches = t
         console.log(e);
     }
 }
-document.addEventListener('DOMContentLoaded', function() {
-    initCustomSlider({
-        section: '.customSlider',
-        arrows: true,
-        dots: true,
-        transition: 1000,
-        autoplay: false,
-        timerTime: 5000,
-        touches: true
-    });
-});
