@@ -8,7 +8,8 @@ function initCustomSlider(_ref) {
       transition = _ref$transition === void 0 ? 500 : _ref$transition,
       _ref$touches = _ref.touches,
       touches = _ref$touches === void 0 ? true : _ref$touches,
-      autoplay = _ref.autoplay,
+      _ref$autoplay = _ref.autoplay,
+      autoplay = _ref$autoplay === void 0 ? false : _ref$autoplay,
       _ref$timerTime = _ref.timerTime,
       timerTime = _ref$timerTime === void 0 ? 10000 : _ref$timerTime;
 

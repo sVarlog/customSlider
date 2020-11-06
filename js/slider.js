@@ -1,4 +1,4 @@
-function initCustomSlider({arrows, dots, section, transition = 500, touches = true, autoplay, timerTime = 10000}) {
+function initCustomSlider({arrows, dots, section, transition = 500, touches = true, autoplay = false, timerTime = 10000}) {
     try{
         const slider = document.querySelector(`${section}`),
               sliderWrapp = slider.querySelector('.sliderWrapp'),
